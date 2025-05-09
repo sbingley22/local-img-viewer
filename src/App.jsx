@@ -2,10 +2,18 @@ import { useState } from 'react'
 import './App.css'
 
 function App() {
+  const [aspect, setAspect] = useState('square')
 
   return (
     <>
-      <h1>IMAGE VIEWER</h1>
+      <header>
+        <div>
+          <span>Aspect: </span>
+          <button onClick={()=>setAspect('square')}>S</button>
+          <button onClick={()=>setAspect('landscape')}>L</button>
+          <button onClick={()=>setAspect('portrait')}>P</button>
+        </div>
+      </header>
     </>
   )
 }
