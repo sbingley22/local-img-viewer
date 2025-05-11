@@ -1,19 +1,13 @@
 import { useState } from 'react'
 import './App.css'
+import HeaderTools from './components/HeaderTools.jsx'
 
 function App() {
   const [aspect, setAspect] = useState('square')
 
   return (
     <>
-      <header>
-        <div>
-          <span>Aspect: </span>
-          <button onClick={()=>setAspect('square')}>S</button>
-          <button onClick={()=>setAspect('landscape')}>L</button>
-          <button onClick={()=>setAspect('portrait')}>P</button>
-        </div>
-      </header>
+      <HeaderTools setAspect={setAspect} />
     </>
   )
 }

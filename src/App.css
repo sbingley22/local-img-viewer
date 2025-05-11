@@ -1,17 +1,19 @@
 #root {
   margin: 0;
-  padding: 0;
+  padding: 5px;
   text-align: center;
+  width: 100vw;
 }
 
 header {
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
 }
 
-header span {
+header p {
+  display: inline;
   padding-right: 8px;
   font-size: 1.4rem;
 }

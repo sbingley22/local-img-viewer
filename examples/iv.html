@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Image Folder Viewer</title>
+    <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #000;
+      color: #bbb;
+    }
+
+    #gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .thumb {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 1000;
+    }
+
+    #overlay img {
+      max-width: 95%;
+      max-height: 90%;
+    }
+
+    #overlay .controls {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      margin-top: 0px;
+      display: flex;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #overlay button {
+      margin: 0 0px;
+      padding: 10px 20px;
+      font-size: 16px;
+      min-width: 30%;
+      background: #111;
+      color: #888;
+    }
+
+    #overlayClose {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 30px;
+      color: white;
+      color: #888;
+      cursor: pointer;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    header div {
+      display: flex;
+      align-items: start;
+    }
+
+    header span {
+      margin-right: 5px;
+    }
+
+    header button {
+      background-color: #111;
+      color: #bbb;
+    }
+
+    input {
+      background-color: #111;
+      color: #bbb;
+    }
+
+    .select-box {
+        position: relative;
+        width: 400px;
+        cursor: pointer;
+        background: #111;
+    }
+    .select-box select {
+        display: none;
+    }
+    .selected-items {
+        border: 1px solid #888;
+        padding: 0px;
+        padding-right: 20px;
+        border-radius: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        background-color: #111;
+    }
+
+    .selected-items .item {
+        background-color: #e0e0e0;
+        padding: 3px 6px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 12px;
+    }
+    .selected-items .item .close {
+        cursor: pointer;
+        font-size: 12px;
+        color: #666;
+    }
+    .options {
+        position: absolute;
+        top: 20px;
+        left: 0;
+        z-index: 2;
+        background-color: #222;
+        border: 1px solid #888;
+        margin-top: 5px;
+        border-radius: 4px;
+        padding: 2px;
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+        min-width: 200px;
+    }
+    .options.show {
+        display: block;
+    }
+    .options label {
+        display: flex;
+        align-items: center;
+        padding: 5px;
+        cursor: pointer;
+    }
+    .options label input[type="checkbox"] {
+        margin-right: 8px;
+    }
+    .options label:hover{
+       background-color: #f0f0f0;
+    }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script src="https://unpkg.com/exifr/dist/lite.umd.js"></script>
+  </head>
+  <body>
+    <header>
+      <input type="file" id="folderInput" webkitdirectory multiple accept="image/*,.heic,.webp,.svg,.bmp,.tiff,.ico,.ip,.iw">
+      <div>
+        <span>Aspect:  </span>
+        <button id="aspectSqrBtn">Sqr</button>
+        <button id="aspectPortBtn">Port</button>
+        <button id="aspectLandBtn">Land</button>
+      </div>
+      <div>
+        <span>Size:  </span>
+        <button id="smallThumbBtn">S</button>
+        <button id="mediumThumbBtn">M</button>
+        <button id="largeThumbBtn">L</button>
+        <button id="extraLargeThumbBtn">XL</button>
+      </div>
+      <div>
+        <span>Sort:  </span>
+        <button id="sortByName">Name</button>
+        <button id="sortByRating">Rating</button>
+      </div>
+      <div class="select-box">
+        <select id="tagSelect" multiple>
+        </select>
+        <div class="selected-items"></div>
+        <div class="options"></div>
+      </div>
+      <div>
+        <span>Filter: </span>
+        <input type="text" id="textFilter">
+      </div>
+    </header>
+
+    <div id="gallery"></div>
+
+    <div id="overlay">
+      <span id="overlayClose">&times;</span>
+      <img id="overlayImage" src="">
+      <div class="controls">
+        <button id="prevBtn">Previous</button>
+        <button id="nextBtn">Next</button>
+      </div>
+    </div>
+
+    <script type="module">
+    const folderInput = document.getElementById('folderInput');
+    const textFilter = document.getElementById('textFilter');
+    const gallery = document.getElementById('gallery');
+    const overlay = document.getElementById('overlay');
+    const overlayImage = document.getElementById('overlayImage');
+    const overlayClose = document.getElementById('overlayClose');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const smallThumbBtn = document.getElementById('smallThumbBtn');
+    const mediumThumbBtn = document.getElementById('mediumThumbBtn');
+    const largeThumbBtn = document.getElementById('largeThumbBtn');
+    const extraLargeThumbBtn = document.getElementById('extraLargeThumbBtn');
+    const aspectSqrBtn = document.getElementById('aspectSqrBtn')
+    const aspectPortBtn = document.getElementById('aspectPortBtn')
+    const aspectLandBtn = document.getElementById('aspectLandBtn')
+    const filterTextInput = document.getElementById('textFilter')
+    const sortNameBtn = document.getElementById('sortByName')
+    const sortRatingBtn = document.getElementById('sortByRating')
+
+    const selectBox = document.querySelector('.select-box');
+    const selectElement = document.getElementById('tagSelect');
+    const selectedItemsDisplay = document.querySelector('.selected-items');
+    const optionsContainer = document.querySelector('.options');
+    let checkboxes = document.querySelectorAll('.options input[type="checkbox"]');
+    let labels = document.querySelectorAll('.options label');
+
+    let tagList = []
+    let selectedTags = [];
+
+    let imageData = [];
+    let currentIndex = 0;
+    let aspectRatio = 'square'
+    let size = 150
+
+    smallThumbBtn.addEventListener('click', () => { size = 150; thumbSize(); })
+    mediumThumbBtn.addEventListener('click', () => { size = 300; thumbSize(); })
+    largeThumbBtn.addEventListener('click', () => { size = 500; thumbSize(); })
+    extraLargeThumbBtn.addEventListener('click', () => { size = 800; thumbSize(); })
+    aspectSqrBtn.addEventListener('click', () => { aspectRatio='square'; thumbSize(); })
+    aspectLandBtn.addEventListener('click', () => { aspectRatio='land'; thumbSize(); })
+    aspectPortBtn.addEventListener('click', () => { aspectRatio='port'; thumbSize(); })
+
+    function thumbSize(newSize=null) {
+      Array.from(gallery.children).forEach((c,i) => {
+        if (aspectRatio === 'port') {
+          c.style.width = Math.floor(size / 1.7) + 'px'
+          c.style.height = size + 'px'
+        }
+        else if (aspectRatio === 'land') {
+          c.style.width = size + 'px'
+          c.style.height = Math.floor(size / 1.7) + 'px'
+        }
+        else {
+          c.style.width = size + 'px'
+          c.style.height = size + 'px'
+        }
+      })
+    }
+
+    function alphabeticalOrder() {
+      const thumbElements = Array.from(gallery.children)
+      thumbElements.sort((a, b) => {
+        const altA = a.alt.toUpperCase()
+        const altB = b.alt.toUpperCase()
+        if (altA < altB) return -1;
+        if (altA > altB) return 1;
+        return 0
+      })
+
+      thumbElements.forEach(thumb => gallery.removeChild(thumb))
+      thumbElements.forEach(thumb => gallery.appendChild(thumb))
+    }
+
+    function sortByRating() {
+      const thumbElements = Array.from(gallery.children)
+      thumbElements.sort((a, b) => {
+        const ratingA = a.dataset?.rating ?? 0
+        const ratingB = b.dataset?.rating ?? 0
+        if (ratingA < ratingB) return 1
+        if (ratingA > ratingB) return -1
+        return 0
+      })
+
+      thumbElements.forEach(thumb => gallery.removeChild(thumb))
+      thumbElements.forEach(thumb => gallery.appendChild(thumb))
+    }
+
+    sortRatingBtn.addEventListener('click', sortByRating)
+    sortNameBtn.addEventListener('click', alphabeticalOrder)
+
+    filterTextInput.addEventListener('change', (e) => {
+      const word = e.srcElement.value
+      Array.from(gallery.children).forEach((c,i) => {
+        if (c.alt.includes(word)) {
+          c.style.display = 'block'
+        }
+        else c.style.display = 'none'
+      })
+      alphabeticalOrder()
+    })
+    
+    folderInput.addEventListener('change', () => {
+      gallery.innerHTML = '';
+      imageData = [];
+
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.ico', '.heic', '.ip', '.ij', '.iw'];
+
+      const files = Array.from(folderInput.files).filter(file => {
+        const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+        return file.type.startsWith('image/') || imageExtensions.includes(ext);
+      });
+
+      const jpgType = ['.jpg', '.jpeg', '.tif', '.webp', '.avif', '.ij']
+      const pngType = ['.png', '.ip']
+      
+      files.forEach(file => {
+        const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+        const isPNG = pngType.includes(ext)
+        const isJPG = jpgType.includes(ext)
+        
+        if (isPNG) {
+          // Manual PNG + XMP text block parsing
+          const reader = new FileReader();
+          reader.onload = e => {
+            const arrayBuffer = e.target.result;
+            const text = new TextDecoder().decode(arrayBuffer);
+
+            let comment = null, rating = null, tags = [], title = null, subject = null;
+
+            const xmpStart = text.indexOf("<x:xmpmeta");
+            const xmpEnd = text.indexOf("</x:xmpmeta>");
+
+            if (xmpStart !== -1 && xmpEnd !== -1) {
+              const xmpData = text.slice(xmpStart, xmpEnd + 12);
+              const parser = new DOMParser();
+              const xmlDoc = parser.parseFromString(xmpData, "text/xml");
+
+              const get = sel => xmlDoc.querySelector(sel)?.textContent.trim();
+
+              comment = get("exif\\:UserComment") || get("UserComment") || get("rdf\\:li");
+              rating = parseInt(get("xmp\\:Rating") || '') || null;
+              title = get("dc\\:title > rdf\\:Alt > rdf\\:li");
+              subject = get("dc\\:subject > rdf\\:Bag > rdf\\:li");
+              const tagNodes = xmlDoc.querySelectorAll("subject > Bag > li");
+              tagNodes.forEach(node => tags.push(node.textContent.trim()));
+              //console.log(xmlDoc)
+              //console.log(tags)
+            }
+
+            // Display image
+            const displayReader = new FileReader();
+            displayReader.onload = evt => {
+              const dataURL = evt.target.result;
+
+              const img = document.createElement("img");
+              img.src = dataURL;
+              img.className = "thumb";
+              img.alt = file.name || "";
+              img.title = comment || '';
+              img.dataset.index = imageData.length;
+              img.dataset.rating = rating
+              img.dataset.tags = tags
+
+              imageData.push({
+                image: dataURL,
+                comment,
+                rating,
+                tags,
+                title,
+                subject,
+              });
+
+              gallery.appendChild(img);
+              updateTags()
+            };
+            displayReader.readAsDataURL(file);
+          };
+          reader.readAsArrayBuffer(file);
+        } else if (isJPG){
+          // Use exifr for JPEG, etc.
+          exifr.parse(file, { xmp: true }).then(meta => {
+            const comment = meta?.XPComment || '';
+            const rating = meta?.Rating || null;
+            const tags = meta?.Subject || [];
+            const title = meta?.XPTitle || null;
+            const subject = Array.isArray(meta?.subject) ? meta.subject : [];
+            subject.forEach(s => tags.push(s))
+            //console.log(meta)
+            //console.log(tags)
+
+            const displayReader = new FileReader();
+            displayReader.onload = evt => {
+              const dataURL = evt.target.result;
+
+              const img = document.createElement("img");
+              img.src = dataURL;
+              img.className = "thumb";
+              img.alt = file.name || "";
+              img.title = comment;
+              img.dataset.index = imageData.length;
+              img.dataset.rating = rating
+              img.dataset.tags = tags
+
+              imageData.push({
+                image: dataURL,
+                comment,
+                rating,
+                tags,
+                title,
+                subject,
+              });
+
+              gallery.appendChild(img);
+              updateTags()
+            };
+            displayReader.readAsDataURL(file);
+          }).catch(err => {
+            console.error(`Error reading metadata from ${file.name}:`, err);
+          });
+        }
+        else {
+          const reader = new FileReader();
+          let image = null
+          let comment = null
+          let rating = 0
+          const tags = []
+          let subject = null
+          let title = null
+
+          reader.onload = e => {
+            // Create image element with base64 for display
+            const displayReader = new FileReader();
+            displayReader.onload = evt => {
+              const dataURL = evt.target.result;
+              image = dataURL
+
+              const img = document.createElement("img");
+              img.src = dataURL;
+              img.className = "thumb";
+              img.dataset.index = imageData.length - 1;
+              img.alt = file.name || "";
+              img.title = comment || "";
+              img.dataset.rating = rating
+              img.dataset.tags = tags
+
+              imageData.push({
+                image: image,
+                comment: comment,
+                rating: rating,
+                tags: tags,
+                title: title,
+                subject: subject,
+              })
+              gallery.appendChild(img);
+              updateTags()
+            };
+
+            displayReader.readAsDataURL(file);
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      });        
+    })
+
+    gallery.addEventListener('click', e => {
+      if (e.target.classList.contains('thumb') && e.button === 0) {
+        // Left click
+        currentIndex = parseInt(e.target.dataset.index, 10);
+        showOverlay(currentIndex);
+      }
+    });
+
+    gallery.addEventListener('mousedown', e => {
+      if (e.button === 1 && e.target.classList.contains('thumb')) {
+        e.preventDefault();
+
+        const imgUrl = e.target.src;
+
+        // Create an anchor tag and simulate a click
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataURLToBlob(imgUrl));
+        link.target = '_blank';
+        link.rel = 'noopener';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    });
+
+    function dataURLToBlob(dataURL) {
+      const [meta, base64] = dataURL.split(',');
+      const mime = meta.match(/:(.*?);/)[1];
+      const binary = atob(base64);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        array[i] = binary.charCodeAt(i);
+      }
+      return new Blob([array], { type: mime });
+    }
+
+    function showOverlay(index) {
+      overlayImage.src = imageData[index].image;
+      overlayImage.title = imageData[index].comment;
+      overlay.style.display = 'flex';
+    }
+
+    overlayClose.addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+
+    prevBtn.addEventListener('click', () => {
+      currentIndex = (currentIndex - 1 + imageData.length) % imageData.length;
+      showOverlay(currentIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      currentIndex = (currentIndex + 1) % imageData.length;
+      showOverlay(currentIndex);
+    });
+
+    // Optional: Close overlay on background click
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) {
+        overlay.style.display = 'none';
+      }
+    });
+
+    // Optional: Use keyboard arrows
+    document.addEventListener('keydown', e => {
+      if (overlay.style.display === 'flex') {
+        if (e.key === 'ArrowRight') nextBtn.click();
+        else if (e.key === 'ArrowLeft') prevBtn.click();
+        else if (e.key === 'Escape') overlayClose.click();
+      }
+    });
+
+    // Tags Drop Down
+    function updateTags() {
+      const tagsDict = {}
+      imageData.forEach((img) => {
+        img.tags.forEach(t => {
+          if (tagsDict[t]) tagsDict[t] += 1
+          else tagsDict[t] = 1
+        })
+      })
+      //console.log(tagsDict)
+      const entries = Object.entries(tagsDict)
+      entries.sort(([, amountA], [, amountB]) => amountB - amountA)
+      tagList = entries.map(([tag]) => tag)
+      updateTagList()
+      //console.log("ordered tags: ", tagList)
+    }
+
+    function updateTagList() {
+      //debugger
+      optionsContainer.innerHTML = ''
+      selectElement.innerHTML = ''
+      tagList.forEach(t => {
+        const labelElement = document.createElement('label')
+        const inputElement = document.createElement('input')
+        inputElement.textContent = t
+        inputElement.type = 'checkbox'
+        inputElement.name= 'tags'
+        inputElement.value = t
+        labelElement.appendChild(inputElement)
+
+        const selectElement = document.createElement('option')
+        selectElement.textContent = t
+        selectElement.value = t
+        labelElement.appendChild(selectElement)
+        optionsContainer.appendChild(labelElement)
+      })
+
+      updateLabels()
+      updateCheckboxes()
+    }
+
+    function updateSelectedItemsDisplay() {
+        selectedItemsDisplay.innerHTML = ''; // Clear previous display
+        selectedTags.forEach(tag => {
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('item');
+            itemDiv.textContent = tag;
+
+            const closeSpan = document.createElement('span');
+            closeSpan.classList.add('close');
+            closeSpan.textContent = '✕';
+            closeSpan.addEventListener('click', () => {
+                removeTag(tag);
+            });
+
+            itemDiv.appendChild(closeSpan);
+            selectedItemsDisplay.appendChild(itemDiv);
+        });
+         if (selectedTags.length === 0) {
+            selectedItemsDisplay.textContent = "Select tags";
+        }
+    }
+
+    function removeTag(tag) {
+        const index = selectedTags.indexOf(tag);
+        if (index > -1) {
+            selectedTags.splice(index, 1);
+        }
+
+        // Uncheck the corresponding checkbox
+        checkboxes.forEach(checkbox => {
+            if (checkbox.value === tag) {
+                checkbox.checked = false;
+            }
+        });
+        updateSelectedItemsDisplay();
+    }
+
+    function haveCommonTags(tags1, tags2) {
+      for (const tag of tags1) {
+        if (tags2.includes(tag)) return true
+      }
+      return false
+    }
+
+    function allTagsIncluded(tags1, tags2) {
+      for (const tag of tags2) {
+        if (!tags1.includes(tag)) {
+          return false; // If even one tag from tags2 is not in tags1, return false
+        }
+      }
+      return true; // If the loop completes, it means all tags from tags2 were found in tags1
+    }
+    
+    function filterByTags() {
+      if (selectedTags.length < 1) {
+        Array.from(gallery.children).forEach((c) => {
+          c.style.display = 'block'
+        })
+        return
+      }
+      Array.from(gallery.children).forEach((c,i) => {
+        const tagsArray = c.dataset.tags.split(",")
+        if (allTagsIncluded(tagsArray, selectedTags)) {
+          c.style.display = 'block'
+        }
+        else c.style.display = 'none'
+      })
+    }
+
+    function updateCheckboxes() {
+      checkboxes = document.querySelectorAll('.options input[type="checkbox"]');
+      checkboxes.forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+              if (this.checked && !selectedTags.includes(this.value)) {
+                  selectedTags.push(this.value);
+              } else {
+                  const index = selectedTags.indexOf(this.value);
+                  if (index > -1) {
+                      selectedTags.splice(index, 1);
+                  }
+              }
+              updateSelectedItemsDisplay();
+              filterByTags()
+          });
+      });
+    }
+
+    function updateLabels() {
+      labels = document.querySelectorAll('.options label')
+      labels.forEach(label => {
+          label.addEventListener('click', (event) => {
+              // Prevent the label click from triggering the select box toggle
+              event.stopPropagation();
+              const checkbox = label.querySelector('input[type="checkbox"]');
+              checkbox.checked = !checkbox.checked; // Manually toggle checkbox
+               // Trigger change event on checkbox
+              checkbox.dispatchEvent(new Event('change'));
+          });
+      });
+    }
+
+    selectBox.addEventListener('click', () => {
+        optionsContainer.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (event) => {
+        if (!selectBox.contains(event.target) && !optionsContainer.contains(event.target)) {
+            optionsContainer.classList.remove('show');
+        }
+    });
+
+    // Initial display update
+    updateSelectedItemsDisplay();
+    </script>
+  </body>
+</html>
