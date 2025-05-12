@@ -20,7 +20,6 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
     }
   }, [])
 
-
   const nextAspect = () => {
     let currentAspect = aspectIndex + 1
     if (currentAspect > 2) currentAspect = 0
@@ -58,7 +57,7 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
               const xmlDoc = parser.parseFromString(xmpData, "text/xml");
               const get = sel => xmlDoc.querySelector(sel)?.textContent.trim();
               comment = get("exif\\:UserComment") || get("UserComment") || get("rdf\\:li");
-              rating = parseInt(get("xmp\\:Rating") || '') || null;
+              rating = parseInt(get("Rating") || get("xmp\\:Rating") || '') || null;
               title = get("dc\\:title > rdf\\:Alt > rdf\\:li");
               const subj = get("dc\\:subject > rdf\\:Bag > rdf\\:li");
               if (subj) subject.push(subj);
@@ -130,6 +129,10 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
     setImages(allImageData.filter(Boolean)); // Remove any failed/null entries
   };
 
+  const thumbSizeChange = (newSize) => {
+    setThumbSize(newSize)
+  }
+
   return (
     <header>
       <input 
@@ -145,14 +148,10 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
         tags={tags}
         setTags={setTags}
       />
-      {/*<div>
-        <span>Filter: </span>
-        <input type="text" id="textFilter"/>
-      </div>*/}
       <div>
         <p>Sort:  </p>
-        <button id="sortByName">Name</button>
-        <button id="sortByRating">Rating</button>
+        <button onClick={()=>setSortBy('name')}>Name</button>
+        <button onClick={()=>setSortBy('rating')}>Rating</button>
       </div>
       <div>
         <p>Aspect</p>
@@ -160,10 +159,10 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
       </div>
       <div>
         <p>Size:  </p>
-        <button >S</button>
-        <button >M</button>
-        <button >L</button>
-        <button >XL</button>
+        <button onClick={()=>thumbSizeChange('S')}>S</button>
+        <button onClick={()=>thumbSizeChange('M')}>M</button>
+        <button onClick={()=>thumbSizeChange('L')}>L</button>
+        <button onClick={()=>thumbSizeChange('XL')}>XL</button>
       </div>
     </header>
   )

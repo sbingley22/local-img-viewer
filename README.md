@@ -6,8 +6,8 @@ A local image viewer with various features for sorting and viewing image and mov
 
 
 To do:
-Add filter for file names, tags, ratings, file types.
+Add ability to open image in new tab.
 Add ability to view video.
-Various thumbnail sizes and ratios
+Add other file types (cbz, etc)
 
 npm run deploy (for gh-pages)

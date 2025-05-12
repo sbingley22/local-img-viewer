@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const styles = {
   overlay: {
     display: 'flex',
-    //flexDirection: 'column',
     position: 'absolute',
     top: '0',
     left: '0',
@@ -13,7 +12,7 @@ const styles = {
     padding: '0',
     background: 'rgba(0,0,0,0.95)',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'start',
     zIndex: 1000,
   },
   image: {
@@ -80,13 +79,35 @@ const styles = {
   },
 }
 
-function ImageOverlay({ image, closeOverlay, nextImage }) {
-  const [showInfo, setShowInfo] = useState(true)
+function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo }) {
+  const [widthZoom, setWidthZoom] = useState(false)
+  const imgRef = useRef()
+
+  useEffect(()=>{
+    if (widthZoom) {
+      imgRef.current.style.width = '100%'
+      imgRef.current.style.maxHeight = 'none'
+    }
+    else {
+      imgRef.current.style.width = 'auto'
+      imgRef.current.style.maxHeight = '100%'
+    }
+  })
 
   return (
-    <div style={styles.overlay}>
+    <div 
+      style={styles.overlay} 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeOverlay()
+      }}
+    >
 
-      {showInfo && <div style={styles.infoBox}>
+      {showInfo && <div 
+          style={styles.infoBox}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeOverlay()
+          }}
+        >
         {image.title && <h3>{image.title}</h3>}
         {image.comment && <div>
           {image.comment.split('\n').map((line, index) => (
@@ -97,7 +118,12 @@ function ImageOverlay({ image, closeOverlay, nextImage }) {
         {image.tags && <p style={styles.smallText}>{image.tags.length > 0 && 'tags: '}{image.tags.join("; ")}</p>}
       </div>}
 
-      <img src={image.image} style={styles.image} />
+      <img 
+        ref={imgRef}
+        src={image.image} 
+        style={styles.image} 
+        onClick={()=>setWidthZoom(!widthZoom)}
+      />
 
       <div onClick={()=>setShowInfo(!showInfo)} style={styles.toggleInfo} ></div>
       <div onClick={()=>nextImage(1)} style={styles.next} ></div>

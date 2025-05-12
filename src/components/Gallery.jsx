@@ -8,6 +8,9 @@ const styles = {
     flexWrap: 'wrap',
     gap: '10px',
     marginTop: '20px',
+    maxHeight: '100%',
+    overflowY: 'auto',
+    justifyContent: 'center',
   }
 }
 
@@ -15,6 +18,7 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
   const [displayImages, setDisplayImages] = useState([])
   const [selectedImage, setSelectedImage] = useState(null)
   const [selectedDisplayIndex, setSelectedDisplayIndex] = useState(null)
+  const [showInfo, setShowInfo] = useState(true)
 
   // Filter by tags
   useEffect(()=>{
@@ -34,6 +38,31 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
     })
     setDisplayImages(tempArray)
   }, [tags])
+
+  // Sort by
+  useEffect(()=>{
+    const tempArray = [...displayImages]
+    if (sortBy === 'name') {
+      tempArray.sort((a, b) => {
+        const imgNameA = images[a].fileName
+        const imgNameB = images[b].fileName
+        if (imgNameA > imgNameB) return 1
+        if (imgNameA < imgNameB) return -1
+        return 0
+      })
+    }
+    else if (sortBy === 'rating') {
+      tempArray.sort((a, b) => {
+        const imgRatingA = images[a].rating
+        const imgRatingB = images[b].rating
+        if (imgRatingA > imgRatingB) return -1
+        if (imgRatingA < imgRatingB) return 1
+        return 0
+      })
+    }
+    setDisplayImages(tempArray)
+    tempArray.forEach(t => console.log(images[t].rating))
+  }, [sortBy])
 
   // Load all images
   useEffect(()=>{
@@ -66,7 +95,7 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
   }
   
   return (
-    <div style={styles.gallery} >
+    <div style={styles.gallery}>
       {displayImages.map((imageIndex, index) => (
         <Thumbnail 
           key={images[imageIndex].fileName} 
@@ -74,6 +103,8 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
           displayIndex={index}
           imageIndex={imageIndex}
           showImage={showImage}
+          aspect={aspect}
+          thumbSize={thumbSize}
         />
       ))}
 
@@ -81,6 +112,8 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
         image={images[selectedImage]}
         closeOverlay={closeOverlay}
         nextImage={nextImage}
+        showInfo={showInfo}
+        setShowInfo={setShowInfo}
       />}
     </div>
   )

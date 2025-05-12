@@ -36,7 +36,7 @@ function TagsTool({ images, tags, setTags }) {
     entries.sort(([, amountA], [, amountB]) => amountB - amountA)
     const tagList = entries.map(([tag]) => tag)
     setAllTags(tagList)
-    console.log(tagList)
+    //console.log(tagList)
   }
 
   const removeTag = (tag) => {
