@@ -16,13 +16,37 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
   const [selectedImage, setSelectedImage] = useState(null)
   const [selectedDisplayIndex, setSelectedDisplayIndex] = useState(null)
 
+  // Filter by tags
   useEffect(()=>{
+    if (tags.length < 1) {
+      resetFilters()
+      return
+    }
+
+    const tempArray = []
+    displayImages.forEach((di) => {
+      const img = images[di]
+      let missingTag = false
+      tags.forEach(tag => {
+        if (!img.tags.includes(tag)) missingTag = true
+      })
+      if (!missingTag) tempArray.push(di)
+    })
+    setDisplayImages(tempArray)
+  }, [tags])
+
+  // Load all images
+  useEffect(()=>{
+    resetFilters()
+  }, [images])
+
+  const resetFilters = () => {
     const tempArray = []
     images.forEach((img,ind) => {
       tempArray.push(ind)
     })
     setDisplayImages(tempArray)
-  }, [images])
+  }
 
   const showImage = (imgInd, displayIndex=null) => {
     setSelectedImage(imgInd)
@@ -39,7 +63,6 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
     else if (nextDisplayIndex < 0) nextDisplayIndex = displayImages.length -1
     setSelectedImage(displayImages[nextDisplayIndex])
     setSelectedDisplayIndex(nextDisplayIndex)
-    //console.log("next image: ", nextDisplayIndex, displayImages[nextDisplayIndex])
   }
   
   return (

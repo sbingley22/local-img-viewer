@@ -6,19 +6,24 @@ header {
 }
 
 header div {
-  border: 2px solid black;
+  border: 1px solid black;
+  border-radius: 10%;
   padding-left: 4px;
 }
 
 header p {
   display: inline;
   padding-right: 8px;
-  font-size: 1.4rem;
+  font-size: 1.0rem;
 }
 
 input {
   background-color: #111;
   color: #bbb;
+}
+
+button {
+  font-size: 0.80rem;
 }
 
 .select-box {
@@ -31,7 +36,6 @@ input {
     display: none;
 }
 .selected-items {
-    border: 1px solid #888;
     padding: 0px;
     padding-right: 20px;
     border-radius: 4px;
@@ -42,7 +46,7 @@ input {
 }
 
 .selected-items .item {
-    background-color: #e0e0e0;
+    background-color: #222;
     padding: 3px 6px;
     border-radius: 15px;
     display: flex;
@@ -66,7 +70,7 @@ input {
     border-radius: 4px;
     padding: 2px;
     display: none;
-    max-height: 200px;
+    max-height: 800px;
     overflow-y: auto;
     min-width: 200px;
 }

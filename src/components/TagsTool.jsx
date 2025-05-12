@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 function TagsTool({ images, tags, setTags }) {
   const [allTags, setAllTags] = useState([])
+  const [showOptions, setShowOptions] = useState(false)
+  const boxRef = useRef(null)
 
   useEffect(()=>{
     if (!images || images.length < 1) return
@@ -15,6 +17,19 @@ function TagsTool({ images, tags, setTags }) {
     });
     sortTagsByAmount(tagsDict)
   }, [images])
+
+  useEffect(() => {
+    const hideOptions = (e) => {
+      if (boxRef.current && !boxRef.current.contains(e.target)) {
+        setShowOptions(false)
+      }
+    }
+
+    document.addEventListener('click', hideOptions)
+    return () => {
+      document.removeEventListener('click', hideOptions)
+    }
+  })
 
   const sortTagsByAmount = (tagsDict) => {
     const entries = Object.entries(tagsDict)
@@ -34,11 +49,28 @@ function TagsTool({ images, tags, setTags }) {
     }
   }
 
-  return (
-    <div className="select-box">
-      <select id="tagSelect" multiple>
-      </select>
+  const handleTagChange = (e) => {
+    console.log(e)
+    const checked = e.target.checked
+    const value = e.target.value
 
+    if (checked && !tags.includes(value)) {
+      const tempTags = [...tags]
+      tempTags.push(value)
+      setTags(tempTags)
+    }
+    else {
+      // remove tag from list
+      removeTag(value)
+    }
+  }
+
+  return (
+    <div 
+      ref={boxRef}
+      className="select-box"
+      onClick={()=>setShowOptions(true)}
+    >
       <div className="selected-items">
         {tags.length < 1 ?
           "Select tags"
@@ -52,10 +84,15 @@ function TagsTool({ images, tags, setTags }) {
         }
       </div>
 
-      <div className="options">
+      <div className="options" style={{display: showOptions ? 'block' : 'none'}}>
         {allTags.map((tag, index) => (
           <label key={tag}>
-            <input name="tags" value={tag} type='checkbox' checked={tags.includes(tag)} />
+            <input 
+              name="tags" 
+              value={tag} type='checkbox' 
+              checked={tags.includes(tag)} 
+              onChange={(e)=>handleTagChange(e)}
+            />
             <option value={tag}>{tag}</option>
           </label>
         ))}
