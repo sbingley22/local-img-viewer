@@ -10,12 +10,13 @@ const styles = {
   }
 }
 
-function Thumbnail({ image }) {
+function Thumbnail({ image, displayIndex, imageIndex, showImage }) {
   return (
     <div>
       <img 
         style={styles.thumb}
         src={image.image} 
+        onClick={()=>showImage(imageIndex, displayIndex)}
       />
     </div>
   )
