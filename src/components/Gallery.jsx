@@ -11,7 +11,7 @@ const styles = {
   }
 }
 
-function Gallery({ images, aspect, }) {
+function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
   const [displayImages, setDisplayImages] = useState([])
   const [selectedImage, setSelectedImage] = useState(null)
   const [selectedDisplayIndex, setSelectedDisplayIndex] = useState(null)

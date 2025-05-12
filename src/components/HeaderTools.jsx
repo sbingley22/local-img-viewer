@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from 'react'
 import exifr from 'exifr'
 import '../App.css'
 import './HeaderTools.css'
+import TagsTool from './TagsTool'
 
 const aspectString = ['square', 'landscape', 'portrait']
 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.ico', '.heic', '.ip', '.ij', '.iw'];
 
-function HeaderTools({ setImages, setAspect }) {
+function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize, setSortBy }) {
   const [aspectIndex, setAspectIndex] = useState(0)
   const folderInputRef = useRef(null)
 
@@ -19,13 +20,13 @@ function HeaderTools({ setImages, setAspect }) {
     }
   }, [])
 
+
   const nextAspect = () => {
     let currentAspect = aspectIndex + 1
     if (currentAspect > 2) currentAspect = 0
     setAspectIndex(currentAspect)
     setAspect(aspectString[currentAspect])
   }
-
   
   const handleFolderChange = async (e) => {
     const files = Array.from(e.target.files).filter(file => {
@@ -139,16 +140,15 @@ function HeaderTools({ setImages, setAspect }) {
         accept="image/*,.heic,.webp,.svg,.bmp,.tiff,.ico,.ip,.iw,.ij,ig"
         onChange={handleFolderChange}
       />
-      <div className="select-box">
-        <select id="tagSelect" multiple>
-        </select>
-        <div className="selected-items"></div>
-        <div className="options"></div>
-      </div>
-      <div>
+      <TagsTool
+        images={images}
+        tags={tags}
+        setTags={setTags}
+      />
+      {/*<div>
         <span>Filter: </span>
         <input type="text" id="textFilter"/>
-      </div>
+      </div>*/}
       <div>
         <p>Sort:  </p>
         <button id="sortByName">Name</button>
