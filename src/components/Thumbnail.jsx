@@ -60,16 +60,21 @@ function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSi
 
       let comment = null
       let comics = null
+      let video = null
       if (image.comment && e.button === 1) comment = image.comment
       if (image.fileType === 'comic') {
         comment = null
         comics = []
         image.images.forEach(i => comics.push(i.dataUrl))
       }
+      else if (image.fileType === 'video') {
+        comment = null
+        video = image.video
+      }
 
       const newTab = window.open('', '_blank');
       if (newTab) {
-        const imageHTML = generateImageHTML(image.image, comment, comics);
+        const imageHTML = generateImageHTML(image.image, comment, comics, video);
         newTab.document.write(imageHTML);
         newTab.document.close();
       }
@@ -79,7 +84,8 @@ function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSi
   const src = image.fileType === 'comic' ? image.images[0].dataUrl : image.image
   const style = {
     ...styles.thumb,
-    ...(image.fileType === 'comic' ? styles.redBorder : {})
+    ...(image.fileType === 'comic' ? styles.redBorder : {}),
+    ...(image.fileType === 'video' ? styles.blueBorder : {})
   }
 
   return (
@@ -95,13 +101,20 @@ function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSi
   )
 }
 
-const generateImageHTML = (imageUrl, title = '', comics = null) => {
+const generateImageHTML = (imageUrl, title = '', comics = null, video = null) => {
   const isComic = Array.isArray((comics))
   const comicImagesHTML = isComic
     ? comics.map(url => `<img src="${url}" alt="Comic Page" />`).join('\n')
     : '';
+
+  const isVideo = video
+  const videoHTML = isVideo
+    ? `<video controls><source src="${video}" type="video/mp4" /></video>`
+    : '';
+
   let imgContainerStyle = 'image-container'
   if (isComic) imgContainerStyle += ' comics'
+  if (isVideo) imgContainerStyle += ' video'
 
   return `
     <!DOCTYPE html>
@@ -137,8 +150,12 @@ const generateImageHTML = (imageUrl, title = '', comics = null) => {
         .comics {
           flex-direction: column;
         }
+        .video {
+          align-items: center;
+          justify-content: center;
+        }
         .zoom {
-          width: 70vw;
+          width: 65vw;
         }
         img {
           max-width: 100vw;
@@ -166,7 +183,7 @@ const generateImageHTML = (imageUrl, title = '', comics = null) => {
     </head>
     <body>
       <div id="img-container" class="${imgContainerStyle}" onclick="zoomToggle()">
-        ${comicImagesHTML || `<img src="${imageUrl}" alt="${title}">`}
+        ${comicImagesHTML || videoHTML || `<img src="${imageUrl}" alt="${title}">`}
         ${title ? `<p class="image-title">${title}</p>` : ''}
       </div>
       <script>

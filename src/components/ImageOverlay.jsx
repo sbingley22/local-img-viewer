@@ -25,6 +25,10 @@ const styles = {
   comic: {
     width: '100%',
   },
+  video: {
+    justifySelf: 'center',
+    alignSelf: 'center',
+  },
   close: {
     position: 'absolute',
     padding: 0,
@@ -98,8 +102,15 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
     }
   }, [widthZoom])
 
+  // Hide info if not an image
+  useEffect(()=>{
+    if (image.fileType === "img") return 
+    if (showInfo) setShowInfo(false)
+  }, [image])
+
   let fileType = 'img'
   if (image.fileType === 'comic') fileType = 'comic'
+  else if (image.fileType === 'video') fileType = 'video'
 
   return (
     <div 
@@ -141,6 +152,13 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
           />
         ))}
       </div>}
+
+      {fileType === 'video' && <video controls style={styles.video}>
+        <source 
+          src={image.video} 
+          type='video/mp4' 
+        />
+      </video>}
 
       <div onClick={()=>setShowInfo(!showInfo)} style={styles.toggleInfo} ></div>
       <div onClick={()=>nextImage(1)} style={styles.next} ></div>

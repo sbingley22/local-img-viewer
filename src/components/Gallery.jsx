@@ -61,7 +61,6 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
       })
     }
     setDisplayImages(tempArray)
-    tempArray.forEach(t => console.log(images[t].rating))
   }, [sortBy])
 
   // Load all images

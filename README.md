@@ -3,10 +3,14 @@
 Live Link: https://sbingley22.github.io/local-img-viewer/
 
 A local image viewer with various features for sorting and viewing image and movie files.
+When in image overlay click top of screen to toggle image info. Click left or right to move to next / previous image.
 
+![screenshot](./screenshot.png)
+
+----------------------
 
 To do:
-Add ability to view video.
-Add other file types (cbz, etc)
+
+----------------------
 
 npm run deploy (for gh-pages)
