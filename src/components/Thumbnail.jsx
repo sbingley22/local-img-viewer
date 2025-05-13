@@ -43,17 +43,92 @@ function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSi
     }
   }, [aspect, thumbSize])
 
+  const handleClick = (e, imageIndex, displayIndex) => {
+    if (e.button === 0) {
+      showImage(imageIndex, displayIndex);
+    } else if (e.button === 1 || e.button === 2) {
+      let comment = null
+      if (image.comment && e.button === 1) comment = image.comment
+      const newTab = window.open('', '_blank');
+      if (newTab) {
+        const imageHTML = generateImageHTML(image.image, comment);
+        newTab.document.write(imageHTML);
+        newTab.document.close();
+      }
+    }
+  };
+
   return (
     <div>
       <img 
         ref={imgRef}
         style={styles.thumb}
         src={image.image} 
-        onClick={()=>showImage(imageIndex, displayIndex)}
+        onMouseDown={(e)=>handleClick(e, imageIndex, displayIndex)}
         title={hoverText}
       />
     </div>
   )
 }
+
+const generateImageHTML = (imageUrl, title = '') => {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Image Viewer</title>
+        <style>
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+          }
+          .image-container {
+            background-color: #111;
+            padding: 0px;
+            margin: 0px;
+            border-radius: 8px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+          }
+          img {
+            max-width: 100vw;
+            max-height: 100vh;
+            display: block;
+            margin: 0px;
+            min-width: 0;
+            flex-shrink: 1;
+          }
+          .image-title {
+            font-size: 1.0em;
+            color: #999;
+            max-width: 300px;
+            margin: 0px;
+            padding: 20px;
+            overflow-y: auto;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="image-container">
+          <img src="${imageUrl}" alt="${title}">
+          ${title ? `<p class="image-title">${title}</p>` : ''}
+        </div>
+      </body>
+      </html>
+    `;
+  };
 
 export default Thumbnail

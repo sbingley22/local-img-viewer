@@ -6,7 +6,6 @@ A local image viewer with various features for sorting and viewing image and mov
 
 
 To do:
-Add ability to open image in new tab.
 Add ability to view video.
 Add other file types (cbz, etc)
 
