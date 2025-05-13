@@ -8,6 +8,12 @@ const styles = {
     border: '1px solid #ccc',
     cursor: 'pointer',
   },
+  redBorder: {
+    borderColor: 'red',
+  },
+  blueBorder: {
+    borderColor: 'blue',
+  },
 }
 
 function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSize }) {
@@ -45,25 +51,41 @@ function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSi
 
   const handleClick = (e, imageIndex, displayIndex) => {
     if (e.button === 0) {
+      // Show image in overlay
       showImage(imageIndex, displayIndex);
-    } else if (e.button === 1 || e.button === 2) {
+    } 
+    else if (e.button === 1 || e.button === 2) {
+      // Show image in new tab
       let comment = null
+      let comics = null
       if (image.comment && e.button === 1) comment = image.comment
+      if (image.fileType === 'comic') {
+        comment = null
+        comics = []
+        image.images.forEach(i => comics.push(i.dataUrl))
+      }
+
       const newTab = window.open('', '_blank');
       if (newTab) {
-        const imageHTML = generateImageHTML(image.image, comment);
+        const imageHTML = generateImageHTML(image.image, comment, comics);
         newTab.document.write(imageHTML);
         newTab.document.close();
       }
     }
   };
 
+  const src = image.fileType === 'comic' ? image.images[0].dataUrl : image.image
+  const style = {
+    ...styles.thumb,
+    ...(image.fileType === 'comic' ? styles.redBorder : {})
+  }
+
   return (
     <div>
       <img 
         ref={imgRef}
-        style={styles.thumb}
-        src={image.image} 
+        style={style}
+        src={src} 
         onMouseDown={(e)=>handleClick(e, imageIndex, displayIndex)}
         title={hoverText}
       />
@@ -71,64 +93,77 @@ function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSi
   )
 }
 
-const generateImageHTML = (imageUrl, title = '') => {
-    return `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Image Viewer</title>
-        <style>
-          * {
-            box-sizing: border-box;
-          }
+const generateImageHTML = (imageUrl, title = '', comics = null) => {
+  const isComic = Array.isArray((comics))
+  const comicImagesHTML = isComic
+    ? comics.map(url => `<img src="${url}" alt="Comic Page" />`).join('\n')
+    : '';
+  let imgContainerStyle = 'image-container'
+  if (isComic) imgContainerStyle += ' comics'
 
-          body {
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-          }
-          .image-container {
-            background-color: #111;
-            padding: 0px;
-            margin: 0px;
-            border-radius: 8px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-          }
-          img {
-            max-width: 100vw;
-            max-height: 100vh;
-            display: block;
-            margin: 0px;
-            min-width: 0;
-            flex-shrink: 1;
-          }
-          .image-title {
-            font-size: 1.0em;
-            color: #999;
-            max-width: 300px;
-            margin: 0px;
-            padding: 20px;
-            overflow-y: auto;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="image-container">
-          <img src="${imageUrl}" alt="${title}">
-          ${title ? `<p class="image-title">${title}</p>` : ''}
-        </div>
-      </body>
-      </html>
-    `;
-  };
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Image Viewer</title>
+      <style>
+        * {
+          box-sizing: border-box;
+        }
+        body {
+          font-family: sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          margin: 0;
+          padding: 0;
+          background-color: #000;
+        }
+        .image-container {
+          background-color: #111;
+          padding: 0px;
+          margin: 0px;
+          border-radius: 8px;
+          text-align: center;
+          display: flex;
+          align-items: center;
+        }
+        .comics {
+        flex-direction: column;
+        }
+        img {
+          max-width: 100vw;
+          max-height: 100vh;
+          display: block;
+          margin: 0px;
+          min-width: 0;
+          flex-shrink: 1;
+        }
+        .comics img {
+          width: 100vw;
+          max-height: none;
+        }
+        .image-title {
+          font-size: 1.0em;
+          color: #999;
+          max-width: 300px;
+          margin: 0px;
+          padding: 20px;
+          overflow-y: auto;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="${imgContainerStyle}">
+        ${comicImagesHTML || `<img src="${imageUrl}" alt="${title}">`}
+        ${title ? `<p class="image-title">${title}</p>` : ''}
+      </div>
+    </body>
+    </html>
+  `;
+};
 
 export default Thumbnail

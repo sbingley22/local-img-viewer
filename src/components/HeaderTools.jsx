@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import exifr from 'exifr'
+import JSZip from 'jszip'
 import '../App.css'
 import './HeaderTools.css'
 import TagsTool from './TagsTool'
 
 const aspectString = ['square', 'landscape', 'portrait']
-const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.ico', '.heic', '.ip', '.ij', '.iw'];
+const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.ico', '.heic', '.ip', '.ij', '.iw', '.cbz'];
 
 function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize, setSortBy }) {
   const [aspectIndex, setAspectIndex] = useState(0)
@@ -35,12 +36,14 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
 
     const jpgType = ['.jpg', '.jpeg', '.tif', '.webp', '.avif', '.ij', '.iw'];
     const pngType = ['.png', '.ip'];
+    const comicType = ['.cbz']
 
     const processFile = (file) => {
       return new Promise((resolve) => {
         const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
         const isPNG = pngType.includes(ext);
         const isJPG = jpgType.includes(ext);
+        const isCBZ = comicType.includes(ext)
 
         let comment = null, rating = null, tags = [], title = null, subject = [];
 
@@ -70,6 +73,7 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
               resolve({
                 image: evt.target.result,
                 fileName: file.name,
+                fileType: 'img',
                 comment,
                 rating,
                 tags,
@@ -80,7 +84,8 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
             displayReader.readAsDataURL(file);
           };
           reader.readAsArrayBuffer(file);
-        } else if (isJPG) {
+        } 
+        else if (isJPG) {
           exifr.parse(file, { xmp: true }).then(meta => {
             comment = meta?.XPComment || '';
             rating = meta?.Rating || null;
@@ -94,6 +99,7 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
               resolve({
                 image: evt.target.result,
                 fileName: file.name,
+                fileType: 'img',
                 comment,
                 rating,
                 tags,
@@ -103,7 +109,66 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
             };
             displayReader.readAsDataURL(file);
           }).catch(() => resolve(null));
-        } else {
+        } 
+        else if (isCBZ) {
+          const zip = new JSZip();
+          zip.loadAsync(file).then(async (unzipped) => {
+            const images = [];
+            const supportedImageExtensions = ['.jpg', '.jpeg', '.png'];
+
+            // Sort files by name to preserve page order
+            const files = Object.keys(unzipped.files).sort();
+
+            for (const fileName of files) {
+              const ext = fileName.toLowerCase().match(/\.\w+$/)?.[0];
+              const isImage = supportedImageExtensions.includes(ext);
+              const isMetaXML = fileName.toLowerCase().includes("comicinfo.xml");
+
+              if (isImage) {
+                const blob = await unzipped.files[fileName].async("blob");
+                const dataUrl = await new Promise(resolve => {
+                  const reader = new FileReader();
+                  reader.onload = e => resolve(e.target.result);
+                  reader.readAsDataURL(blob);
+                });
+
+                images.push({
+                  name: fileName,
+                  dataUrl,
+                });
+              } else if (isMetaXML) {
+                const xmlText = await unzipped.files[fileName].async("text");
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                const get = (tag) => xmlDoc.querySelector(tag)?.textContent.trim();
+
+                comment = get("Summary");
+                rating = parseInt(get("Rating") || '') || null;
+                title = get("Title");
+                const subjects = [...xmlDoc.querySelectorAll("Genre")].map(n => n.textContent.trim());
+                tags = [...subjects];
+                subject = subjects;
+              }
+            }
+
+            resolve({
+              images, // array of pages
+              fileName: file.name,
+              fileType: 'comic',
+              comment,
+              rating,
+              tags,
+              title,
+              subject,
+            });
+
+          }).catch(err => {
+            console.error("CBZ parse error:", err);
+            resolve(null);
+          });
+        }
+        else {
           const reader = new FileReader();
           reader.onload = () => {
             const displayReader = new FileReader();
@@ -111,6 +176,7 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
               resolve({
                 image: evt.target.result,
                 fileName: file.name,
+                fileType: 'img',
                 comment,
                 rating,
                 tags,

@@ -22,6 +22,9 @@ const styles = {
     flexShrink: 1,
     minWidth: 0,
   },
+  comic: {
+    width: '100%',
+  },
   close: {
     position: 'absolute',
     padding: 0,
@@ -84,6 +87,7 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
   const imgRef = useRef()
 
   useEffect(()=>{
+    if (!imgRef || !imgRef.current) return
     if (widthZoom) {
       imgRef.current.style.width = '100%'
       imgRef.current.style.maxHeight = 'none'
@@ -92,7 +96,10 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
       imgRef.current.style.width = 'auto'
       imgRef.current.style.maxHeight = '100%'
     }
-  })
+  }, [widthZoom])
+
+  let fileType = 'img'
+  if (image.fileType === 'comic') fileType = 'comic'
 
   return (
     <div 
@@ -118,12 +125,22 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
         {image.tags && <p style={styles.smallText}>{image.tags.length > 0 && 'tags: '}{image.tags.join("; ")}</p>}
       </div>}
 
-      <img 
+      {fileType === 'img' && <img 
         ref={imgRef}
         src={image.image} 
         style={styles.image} 
         onClick={()=>setWidthZoom(!widthZoom)}
-      />
+      />}
+
+      {fileType === 'comic' && <div> 
+        {image.images.map((i,index)=> (
+          <img
+            key={'comicPage'+index}
+            src={i.dataUrl} 
+            style={styles.comic} 
+          />
+        ))}
+      </div>}
 
       <div onClick={()=>setShowInfo(!showInfo)} style={styles.toggleInfo} ></div>
       <div onClick={()=>nextImage(1)} style={styles.next} ></div>
