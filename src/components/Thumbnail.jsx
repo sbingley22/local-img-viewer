@@ -56,6 +56,8 @@ function Thumbnail({ image, displayIndex, imageIndex, showImage, aspect, thumbSi
     } 
     else if (e.button === 1 || e.button === 2) {
       // Show image in new tab
+      e.preventDefault()
+
       let comment = null
       let comics = null
       if (image.comment && e.button === 1) comment = image.comment
@@ -130,9 +132,13 @@ const generateImageHTML = (imageUrl, title = '', comics = null) => {
           text-align: center;
           display: flex;
           align-items: center;
+          width: 100%;
         }
         .comics {
-        flex-direction: column;
+          flex-direction: column;
+        }
+        .zoom {
+          width: 70vw;
         }
         img {
           max-width: 100vw;
@@ -143,8 +149,10 @@ const generateImageHTML = (imageUrl, title = '', comics = null) => {
           flex-shrink: 1;
         }
         .comics img {
-          width: 100vw;
+          width: 100%;
           max-height: none;
+          flex-shrink: 0;
+          min-width: auto;
         }
         .image-title {
           font-size: 1.0em;
@@ -157,10 +165,24 @@ const generateImageHTML = (imageUrl, title = '', comics = null) => {
       </style>
     </head>
     <body>
-      <div class="${imgContainerStyle}">
+      <div id="img-container" class="${imgContainerStyle}" onclick="zoomToggle()">
         ${comicImagesHTML || `<img src="${imageUrl}" alt="${title}">`}
         ${title ? `<p class="image-title">${title}</p>` : ''}
       </div>
+      <script>
+        const imgContainer = document.getElementById('img-container')
+        let zoomed = false
+        function zoomToggle() {
+          console.log("zooming: ", zoomed)
+          if (zoomed) {
+            imgContainer.classList.remove('zoom')
+          }
+          else {
+            imgContainer.classList.add('zoom')
+          }
+          zoomed = !zoomed
+        }
+      </script>
     </body>
     </html>
   `;
