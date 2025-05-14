@@ -6,7 +6,7 @@ import FolderInput from './FolderInput'
 
 const aspectString = ['square', 'landscape', 'portrait']
 
-function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize, setSortBy }) {
+function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize, setSortBy, showHtmlLinks, showImages, setShowImages, showVideos, setShowVideos, showComics, setShowComics, setShowHtmlLinks, setHtmlLinks }) {
   const [aspectIndex, setAspectIndex] = useState(0)
 
   const nextAspect = () => {
@@ -22,7 +22,50 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
 
   return (
     <header>
-      <FolderInput setImages={setImages} />
+      <FolderInput 
+        setImages={setImages}
+        setHtmlLinks={setHtmlLinks}
+        showImages={showImages}
+        showVideos={showVideos}
+        showComics={showComics}
+        showHtmlLinks={showHtmlLinks}
+      />
+      <label>
+        <input 
+          name="showImages" 
+          type='checkbox' 
+          checked={showImages} 
+          onChange={(e)=>setShowImages(e.target.checked)}
+        />
+        Images
+      </label>
+      <label>
+        <input 
+          name="showVideos" 
+          type='checkbox' 
+          checked={showVideos} 
+          onChange={(e)=>setShowVideos(e.target.checked)}
+        />
+        Videos
+      </label>
+      <label>
+        <input 
+          name="showComics" 
+          type='checkbox' 
+          checked={showComics} 
+          onChange={(e)=>setShowComics(e.target.checked)}
+        />
+        Comics
+      </label>
+      <label>
+        <input 
+          name="showHtml" 
+          type='checkbox' 
+          checked={showHtmlLinks} 
+          onChange={(e)=>setShowHtmlLinks(e.target.checked)}
+        />
+        Html
+      </label>
       <TagsTool
         images={images}
         tags={tags}
@@ -32,6 +75,7 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
         <p>Sort:  </p>
         <button onClick={()=>setSortBy('name')}>Name</button>
         <button onClick={()=>setSortBy('rating')}>Rating</button>
+        <button onClick={()=>setSortBy('type')}>Type</button>
       </div>
       <div>
         <p>Aspect</p>

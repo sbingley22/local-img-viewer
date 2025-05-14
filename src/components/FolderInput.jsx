@@ -4,9 +4,9 @@ import JSZip from 'jszip'
 import '../App.css'
 import './HeaderTools.css'
 
-const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.ico', '.heic', '.ip', '.ij', '.iw', '.cbz', '.cb', '.ic', '.im', '.mp4', '.mp']
+const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.ico', '.heic', '.ip', '.ij', '.iw', '.cbz', '.cb', '.ic', '.im', '.mp4', '.mp', '.htm', '.html']
 
-function FolderInput({ setImages }) {
+function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComics, showHtmlLinks }) {
   const folderInputRef = useRef(null)
 
   useEffect(() => {
@@ -28,6 +28,9 @@ function FolderInput({ setImages }) {
     const pngType = ['.png', '.ip'];
     const comicType = ['.cbz', '.cb', '.cbr', '.ic']
     const mp4Type = ['.mp4', '.mp', '.im']
+    const htmlType = ['.html', '.htm']
+
+    const tempHtmlLinks = []
 
     const processFile = (file) => {
       return new Promise((resolve) => {
@@ -36,10 +39,12 @@ function FolderInput({ setImages }) {
         const isJPG = jpgType.includes(ext);
         const isCBZ = comicType.includes(ext)
         const isMP4 = mp4Type.includes(ext)
+        const isHtml = htmlType.includes(ext)
 
         let comment = null, rating = null, tags = [], title = null, subject = [];
 
         if (isPNG) {
+          if (!showImages) return resolve(null)
           const reader = new FileReader();
           reader.onload = e => {
             const text = new TextDecoder().decode(e.target.result);
@@ -78,6 +83,7 @@ function FolderInput({ setImages }) {
           reader.readAsArrayBuffer(file);
         } 
         else if (isJPG) {
+          if (!showImages) return resolve(null)
           exifr.parse(file, { xmp: true }).then(meta => {
             comment = meta?.XPComment || '';
             rating = meta?.Rating || null;
@@ -103,6 +109,7 @@ function FolderInput({ setImages }) {
           }).catch(() => resolve(null));
         } 
         else if (isCBZ) {
+          if (!showComics) return resolve(null)
           const zip = new JSZip();
           zip.loadAsync(file).then(async (unzipped) => {
             const images = [];
@@ -160,6 +167,7 @@ function FolderInput({ setImages }) {
           });
         }
         else if (isMP4) {
+          if (!showVideos) return resolve(null)
           const videoURL = URL.createObjectURL(file)
           const video = document.createElement('video')
 
@@ -206,7 +214,17 @@ function FolderInput({ setImages }) {
             resolve(null)
           })
         }
+        else if (isHtml) {
+          if (!showHtmlLinks) return resolve(null)
+          const link = URL.createObjectURL(file)
+          tempHtmlLinks.push({
+            name: file.name,
+            link: link,
+          })
+          resolve(null)
+        }
         else {
+          if (!showImages) return resolve(null)
           const reader = new FileReader();
           reader.onload = () => {
             const displayReader = new FileReader();
@@ -232,6 +250,9 @@ function FolderInput({ setImages }) {
     const allImageData = await Promise.all(files.map(processFile));
     setImages(allImageData.filter(Boolean)); // Remove any failed/null entries
     //console.log(allImageData)
+
+    setHtmlLinks(tempHtmlLinks)
+    //console.log(tempHtmlLinks)
   }
 
   return (
@@ -240,7 +261,7 @@ function FolderInput({ setImages }) {
       ref={folderInputRef}
       id="folderInput" 
       multiple 
-      accept="image/*,.heic,.webp,.svg,.bmp,.tiff,.ico,.ip,.iw,.ij,.ig,.im,.ic,.cbz,.mp4"
+      accept="image/*,.heic,.webp,.svg,.bmp,.tiff,.ico,.ip,.iw,.ij,.ig,.im,.ic,.cbz,.mp4,.htm,.html"
       onChange={handleFolderChange}
     />
     

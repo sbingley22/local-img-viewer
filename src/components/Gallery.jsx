@@ -14,7 +14,7 @@ const styles = {
   }
 }
 
-function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
+function Gallery({ images, tags, aspect, thumbSize, sortBy, showImages, showVideos, showComics }) {
   const [displayImages, setDisplayImages] = useState([])
   const [selectedImage, setSelectedImage] = useState(null)
   const [selectedDisplayIndex, setSelectedDisplayIndex] = useState(null)
@@ -60,6 +60,15 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
         return 0
       })
     }
+    else if (sortBy === "type") {
+      tempArray.sort((a, b) => {
+        const fileTypeA = images[a].fileType
+        const fileTypeB = images[b].fileType
+        if (fileTypeA > fileTypeB) return 1
+        if (fileTypeA < fileTypeB) return -1
+        return 0
+      })
+    }
     setDisplayImages(tempArray)
   }, [sortBy])
 
@@ -92,20 +101,27 @@ function Gallery({ images, tags, aspect, thumbSize, sortBy }) {
     setSelectedImage(displayImages[nextDisplayIndex])
     setSelectedDisplayIndex(nextDisplayIndex)
   }
-  
+
   return (
     <div style={styles.gallery}>
-      {displayImages.map((imageIndex, index) => (
-        <Thumbnail 
-          key={images[imageIndex].fileName} 
-          image={images[imageIndex]}
-          displayIndex={index}
-          imageIndex={imageIndex}
-          showImage={showImage}
-          aspect={aspect}
-          thumbSize={thumbSize}
-        />
-      ))}
+      {displayImages.map((imageIndex, index) => {
+        const image = images[imageIndex]
+        if (!showImages && image.fileType === "img") return null
+        if (!showVideos && image.fileType === "video") return null
+        if (!showComics && image.fileType === "comic") return null
+
+        return (
+          <Thumbnail 
+            key={image.fileName} 
+            image={image}
+            displayIndex={index}
+            imageIndex={imageIndex}
+            showImage={showImage}
+            aspect={aspect}
+            thumbSize={thumbSize}
+          />
+        )
+      })}
 
       {selectedImage !== null && <ImageOverlay 
         image={images[selectedImage]}

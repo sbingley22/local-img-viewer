@@ -10,7 +10,3 @@ When in image overlay click top of screen to toggle image info. Click left or ri
 ----------------------
 
 To do:
-
-----------------------
-
-npm run deploy (for gh-pages)

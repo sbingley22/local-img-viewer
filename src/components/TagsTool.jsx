@@ -40,7 +40,6 @@ function TagsTool({ images, tags, setTags }) {
   }
 
   const removeTag = (tag) => {
-    console.log("Removing Tag!", tag)
     const index = tags.indexOf(tag)
     if (index > -1) {
       const tempTags = [...tags]
@@ -50,7 +49,6 @@ function TagsTool({ images, tags, setTags }) {
   }
 
   const handleTagChange = (e) => {
-    console.log(e)
     const checked = e.target.checked
     const value = e.target.value
 
