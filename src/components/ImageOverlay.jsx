@@ -108,6 +108,14 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
     if (showInfo) setShowInfo(false)
   }, [image])
 
+  const comicSize = (e) => {
+    if (e.target.parentElement.localName !== "div") return
+    const div = e.target.parentElement
+    console.log(div, div.style)
+    if (div.style.width === "50%") div.style.width = "100%"
+    else div.style.width = "50%"
+  }
+
   let fileType = 'img'
   if (image.fileType === 'comic') fileType = 'comic'
   else if (image.fileType === 'video') fileType = 'video'
@@ -143,7 +151,7 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
         onClick={()=>setWidthZoom(!widthZoom)}
       />}
 
-      {fileType === 'comic' && <div> 
+      {fileType === 'comic' && <div onClick={(e)=>comicSize(e)}> 
         {image.images.map((i,index)=> (
           <img
             key={'comicPage'+index}

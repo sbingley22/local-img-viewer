@@ -116,7 +116,9 @@ function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComi
             const supportedImageExtensions = ['.jpg', '.jpeg', '.png'];
 
             // Sort files by name to preserve page order
-            const files = Object.keys(unzipped.files).sort();
+            const files = Object.keys(unzipped.files).sort((a, b) =>
+              a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+            );
 
             for (const fileName of files) {
               const ext = fileName.toLowerCase().match(/\.\w+$/)?.[0];
