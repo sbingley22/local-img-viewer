@@ -110,6 +110,7 @@ function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComi
         } 
         else if (isCBZ) {
           if (!showComics) return resolve(null)
+          if (file.name.charAt(0) === '_') return resolve(null)
           const zip = new JSZip();
           zip.loadAsync(file).then(async (unzipped) => {
             const images = [];
