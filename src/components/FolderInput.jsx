@@ -34,6 +34,7 @@ function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComi
 
     const processFile = (file) => {
       return new Promise((resolve) => {
+        if (file.name.startsWith('_')) return resolve(null)
         const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
         const isPNG = pngType.includes(ext);
         const isJPG = jpgType.includes(ext);
@@ -110,7 +111,6 @@ function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComi
         } 
         else if (isCBZ) {
           if (!showComics) return resolve(null)
-          if (file.name.charAt(0) === '_') return resolve(null)
           const zip = new JSZip();
           zip.loadAsync(file).then(async (unzipped) => {
             const images = [];
