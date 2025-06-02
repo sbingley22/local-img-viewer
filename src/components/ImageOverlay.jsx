@@ -89,6 +89,7 @@ const styles = {
 function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo }) {
   const [widthZoom, setWidthZoom] = useState(false)
   const imgRef = useRef()
+  const [autoInfo, setAutoInfo] = useState(true)
 
   useEffect(()=>{
     if (!imgRef || !imgRef.current) return
@@ -102,10 +103,12 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
     }
   }, [widthZoom])
 
-  // Hide info if not an image
+  // Hide info if not an image or no comment
   useEffect(()=>{
-    if (image.fileType === "img") return 
-    if (showInfo) setShowInfo(false)
+    if (image.fileType !== "img") setShowInfo(false)
+    if (!autoInfo) return
+    if (image.comment) setShowInfo(true)
+    else setShowInfo(false)
   }, [image])
 
   const comicSize = (e) => {
@@ -114,6 +117,11 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
     console.log(div, div.style)
     if (div.style.width === "50%") div.style.width = "100%"
     else div.style.width = "50%"
+  }
+
+  const handleToggleInfo = () => {
+    setShowInfo(!showInfo)
+    setAutoInfo(false)
   }
 
   let fileType = 'img'
@@ -168,7 +176,7 @@ function ImageOverlay({ image, closeOverlay, nextImage, showInfo, setShowInfo })
         />
       </video>}
 
-      <div onClick={()=>setShowInfo(!showInfo)} style={styles.toggleInfo} ></div>
+      <div onClick={()=>handleToggleInfo()} style={styles.toggleInfo} ></div>
       <div onClick={()=>nextImage(1)} style={styles.next} ></div>
       <div onClick={()=>nextImage(-1)} style={styles.prev} ></div>
       <span onClick={()=>closeOverlay()} style={styles.close} >&times;</span>
