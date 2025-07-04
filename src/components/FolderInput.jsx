@@ -24,8 +24,9 @@ function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComi
       return file.type.startsWith('image/') || imageExtensions.includes(ext);
     });
 
-    const jpgType = ['.jpg', '.jpeg', '.tif', '.webp', '.avif', '.ij', '.iw'];
-    const pngType = ['.png', '.ip'];
+    const jpgType = ['.jpg', '.jpeg', '.tif', '.avif', '.ij']
+    const pngType = ['.png', '.ip']
+    const webpType = ['.webp', '.iw']
     const comicType = ['.cbz', '.cb', '.cbr', '.ic']
     const mp4Type = ['.mp4', '.mp', '.im']
     const htmlType = ['.html', '.htm']
@@ -38,6 +39,7 @@ function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComi
         const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
         const isPNG = pngType.includes(ext);
         const isJPG = jpgType.includes(ext);
+        const isWEBP = webpType.includes(ext);
         const isCBZ = comicType.includes(ext)
         const isMP4 = mp4Type.includes(ext)
         const isHtml = htmlType.includes(ext)
@@ -107,7 +109,27 @@ function FolderInput({ setImages, setHtmlLinks, showImages, showVideos, showComi
               });
             };
             displayReader.readAsDataURL(file);
-          }).catch(() => resolve(null));
+          }).catch(err => {
+            console.error('exifr error: ', err)
+            resolve(null)
+          });
+        } 
+        else if (isWEBP) {
+          if (!showImages) return resolve(null)
+          const displayReader = new FileReader();
+          displayReader.onload = evt => {
+            resolve({
+              image: evt.target.result,
+              fileName: file.name,
+              fileType: 'img',
+              comment: '',     // WebP won't have this
+              rating: null,
+              tags: [],
+              title: null,
+              subject: [],
+            });
+          };
+          displayReader.readAsDataURL(file);
         } 
         else if (isCBZ) {
           if (!showComics) return resolve(null)
