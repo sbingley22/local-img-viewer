@@ -10,3 +10,4 @@ When in image overlay click top of screen to toggle image info. Click left or ri
 ----------------------
 
 To do:
+Right click file types to deselect all except the one clicked

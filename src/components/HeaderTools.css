@@ -22,6 +22,10 @@ input {
   color: #bbb;
 }
 
+input[type="checkbox"] {
+  transform: scale(1.5);
+}
+
 button {
   font-size: 0.80rem;
 }

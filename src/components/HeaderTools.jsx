@@ -20,6 +20,20 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
     setThumbSize(newSize)
   }
 
+  const handleFileTypes = (e, type) => {
+    console.log(e)
+    if (e.button !== 2) return
+    e.preventDefault()
+    setShowImages(false)
+    setShowVideos(false)
+    setShowComics(false)
+    setShowHtmlLinks(false)
+    if (type === "images") setShowImages(true)
+    else if (type === "videos") setShowVideos(true)
+    else if (type === "comics") setShowComics(true)
+    else if (type === "html") setShowHtmlLinks(true)
+  }
+
   return (
     <header>
       <FolderInput 
@@ -36,8 +50,9 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
           type='checkbox' 
           checked={showImages} 
           onChange={(e)=>setShowImages(e.target.checked)}
+          onContextMenu={(e)=>handleFileTypes(e, "images")}
         />
-        Images
+        img
       </label>
       <label>
         <input 
@@ -45,8 +60,9 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
           type='checkbox' 
           checked={showVideos} 
           onChange={(e)=>setShowVideos(e.target.checked)}
+          onContextMenu={(e)=>handleFileTypes(e, "videos")}
         />
-        Videos
+        vid
       </label>
       <label>
         <input 
@@ -54,8 +70,9 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
           type='checkbox' 
           checked={showComics} 
           onChange={(e)=>setShowComics(e.target.checked)}
+          onContextMenu={(e)=>handleFileTypes(e, "comics")}
         />
-        Comics
+        cbz
       </label>
       <label>
         <input 
@@ -63,8 +80,9 @@ function HeaderTools({ images, setImages, tags, setTags, setAspect, setThumbSize
           type='checkbox' 
           checked={showHtmlLinks} 
           onChange={(e)=>setShowHtmlLinks(e.target.checked)}
+          onContextMenu={(e)=>handleFileTypes(e, "html")}
         />
-        Html
+        html
       </label>
       <TagsTool
         images={images}
